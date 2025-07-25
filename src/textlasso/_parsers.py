@@ -4,7 +4,7 @@ from typing import Any
 import xmltodict
 from loguru import logger
 
-from textlasso.cleaners import clear_llm_res
+from .cleaners import clear_llm_res
 
 
 def parse_xml(text: str) -> dict[str, Any]:

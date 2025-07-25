@@ -329,13 +329,13 @@ def extract_from_dict(data_dict: dict,
 
 
 def extract(text: str, 
-            target_class: type, 
+            target_class: type=None, 
             extract_strategy: Literal['json', 'xml'] = 'xml') -> Any:
     """ Extract data from text using a specified strategy and target dataclass type 
     
     Args:
         text: The text to extract data from
-        target_class: The dataclass type to convert to
+        target_class: The dataclass type to convert to. Returns dictionary if None
         extract_strategy: The strategy to use for extraction (default is 'json')
         
     Returns:
@@ -350,5 +350,8 @@ def extract(text: str,
         data_dict = parse_xml(text)
     else:
         raise ValueError(f"Invalid extract_strategy: {extract_strategy}")
+    
+    if target_class is None:
+        return data_dict
     
     return extract_from_dict(data_dict, target_class)

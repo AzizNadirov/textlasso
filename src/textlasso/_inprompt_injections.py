@@ -1,7 +1,8 @@
 import json
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, fields, is_dataclass
-from typing import get_origin, get_args, Union, Dict, Any, Callable, Optional, Type
+import dataclasses
+from dataclasses import fields, is_dataclass
+from typing import get_origin, get_args, Union, Dict, Any, Callable, Optional, Type, Literal
 from enum import Enum
 import logging
 import functools
@@ -16,7 +17,7 @@ class PromptGenerationError(Exception):
 def generate_structured_prompt(
     prompt: str, 
     schema: type, 
-    strategy: str,
+    strategy: Literal['json', 'xml'] = 'xml',
     include_schema_description: bool = True,
     example_count: int = 2
 ) -> str:
@@ -111,7 +112,7 @@ You must respond with a valid {format_name} object that follows this exact struc
             field_name = field.name
             
             # Determine if field is optional
-            is_optional = self._is_optional(field_type) or field.default is not dataclass.MISSING
+            is_optional = self._is_optional(field_type) or field.default is not dataclasses.MISSING
             optional_marker = " (optional)" if is_optional else " (required)"
             
             # Get the actual type (unwrap Optional)
@@ -157,7 +158,7 @@ You must respond with a valid {format_name} object that follows this exact struc
             field_type = field.type
             
             # Check if field is optional
-            is_optional = self._is_optional(field_type) or field.default is not dataclass.MISSING
+            is_optional = self._is_optional(field_type) or field.default is not dataclasses.MISSING
             
             # Sometimes skip optional fields for variation
             if is_optional and variation % 3 == 2:

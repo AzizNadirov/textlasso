@@ -1,7 +1,7 @@
 from typing import Literal
 
 
-def clear_llm_res(text: str, extract_strategy: Literal['json', 'xml'])-> str:
+def clear_llm_res(text: str, extract_strategy: Literal['json', 'xml']) -> str:
     """ clear text from LLM response based on strategy """
     text = text.strip()
     if text.startswith('```'):
