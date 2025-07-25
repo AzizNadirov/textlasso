@@ -1,0 +1,46 @@
+[project]
+name = "textlasso"
+version = "0.1.0"
+description = "Simple packego for grab data from raw text. "
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Aziz Nadirov", email = "aziznadirov@yahoo.com"}
+]
+maintainers = [
+    {name = "Aziz Nadirov", email = "aziznadirov@yahoo.com"}
+]
+keywords = ["llm", "text", "crawl", "extract", "text-cleaning"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "ipykernel>=6.30.0",
+    "loguru>=0.7.3",
+    "pandas>=2.3.1",
+    "xmltodict>=0.14.2",
+]
+[project.urls]
+Homepage = "https://github.com/AzizNadirov/textlasso"
+Repository = "https://github.com/AzizNadirov/textlasso.git"
+Documentation = "https://textlasso.readthedocs.io"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/textlasso"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.github",
+    "/docs",
+    "/scripts",
+    "/tests",
+]
+
