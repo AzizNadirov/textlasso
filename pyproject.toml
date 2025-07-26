@@ -1,6 +1,6 @@
 [project]
 name = "textlasso"
-version = "0.1.0"
+version = "0.1.1"
 description = "Simple packego for grab data from raw text. "
 readme = "README.md"
 license = "MIT"
