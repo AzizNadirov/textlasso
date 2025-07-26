@@ -30,7 +30,6 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/AzizNadirov/textlasso"
 Repository = "https://github.com/AzizNadirov/textlasso.git"
-Documentation = "https://textlasso.readthedocs.io"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/textlasso"]

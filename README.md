@@ -4,7 +4,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**TextLasso** is a powerful Python library for extracting structured data from raw text, with special focus on processing LLM (Large Language Model) responses. Whether you're parsing JSON buried in markdown, extracting data from XML, or need to generate structured prompts for AI models, TextLasso has you covered.
+**TextLasso** is a simple Python library for extracting structured data from raw text, with special focus on processing LLM (Large Language Model) responses. Whether you're parsing JSON buried in markdown, extracting data from XML, or need to generate structured prompts for AI models, TextLasso has you covered.
 
 ## ✨ Key Features
 
@@ -589,39 +589,6 @@ Cache prompt results for better performance.
 #### `clear_llm_res(text, extract_strategy)`
 Clean LLM responses by removing code blocks and formatting.
 
-## 🛠️ Advanced Features
-
-### Custom Type Handling
-
-TextLasso automatically handles:
-- **Nested dataclasses**: Complex object hierarchies
-- **Optional fields**: Fields that may or may not be present
-- **Lists and dictionaries**: Collections with proper type conversion
-- **Enums**: Automatic enum value conversion
-- **Union types**: Multiple possible types for a field
-- **Type validation**: Ensure data matches expected types
-
-### Flexible Error Handling
-
-```python
-# Configure error behavior
-extractor = DataclassConverter(
-    strict_mode=False,          # Try conversion instead of failing
-    ignore_extra_fields=True,   # Don't error on unexpected fields
-    log_level=logging.WARNING   # Control logging verbosity
-)
-```
-
-### Multiple Parsing Strategies
-
-TextLasso tries multiple strategies to extract JSON:
-1. Direct JSON parsing
-2. Extract from markdown code blocks
-3. Find JSON objects in text
-4. Clean and retry with character filtering
-5. Extract JSON arrays
-6. Custom fallback strategies
-
 ## 🤝 Contributing
 
 We welcome contributions! Here's how to get started:
@@ -631,16 +598,6 @@ We welcome contributions! Here's how to get started:
 3. Make your changes and add tests
 4. Run tests: `pytest`
 5. Submit a pull request
-
-### Development Setup
-
-```bash
-git clone https://github.com/AzizNadirov/textlasso.git
-cd textlasso
-uv venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-uv pip install -e ".[dev]"
-```
 
 ## 📄 License
 
@@ -656,7 +613,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - 📧 Email: aziznadirov@yahoo.com
 - 🐛 Issues: [GitHub Issues](https://github.com/AzizNadirov/textlasso/issues)
-- 📖 Documentation: [textlasso.readthedocs.io](https://textlasso.readthedocs.io)
 
 ---
 
