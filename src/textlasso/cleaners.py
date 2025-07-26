@@ -13,4 +13,4 @@ def clear_llm_res(text: str, extract_strategy: Literal['json', 'xml']) -> str:
         if text.endswith('```'):    # drop closing ```
             text = text[:-3]
             
-    return text
+    return text.strip()

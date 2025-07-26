@@ -1,5 +1,6 @@
 import logging
-from dataclasses import dataclass, fields, is_dataclass
+import dataclasses
+from dataclasses import fields, is_dataclass
 from typing import get_origin, get_args, Union, Optional, List, Dict, Any, Literal
 from enum import Enum
 from ._parsers import parse_json, parse_xml
@@ -79,6 +80,7 @@ class DataclassConverter:
             return result
         except Exception as e:
             self.logger.error(f"Conversion failed: {str(e)}")
+            self.logger.info(f"Input data: {data}")
             raise ConversionError(f"Failed to convert data to {target_class.__name__}: {str(e)}") from e
     
     def _convert_to_dataclass(self, data: Dict[str, Any], target_class: type) -> Any:
@@ -122,10 +124,10 @@ class DataclassConverter:
                     self.logger.error(f"Failed to convert field '{field_name}': {str(e)}")
                     raise
                     
-            elif field.default is not dataclass.MISSING:
+            elif field.default is not dataclasses.MISSING:
                 self.logger.debug(f"Using default value for '{field_name}': {field.default}")
                 continue
-            elif field.default_factory is not dataclass.MISSING:
+            elif field.default_factory is not dataclasses.MISSING:
                 self.logger.debug(f"Using default_factory for '{field_name}'")
                 continue
             else:
@@ -247,19 +249,52 @@ class DataclassConverter:
         self.logger.debug("Converting to plain dict")
         return dict(value)
     
+    
     def _convert_enum_value(self, value: Any, target_type: type, context: str) -> Enum:
         """Convert value to Enum type."""
         self.logger.debug(f"Converting to Enum {target_type.__name__}")
         
         try:
+            # Strategy 1: Try by value first (most common case)
             if isinstance(value, str):
-                # Try by name first
-                return target_type[value]
-            else:
-                # Try by value
                 return target_type(value)
-        except (KeyError, ValueError) as e:
-            raise ValueError(f"Cannot convert {value} to {target_type.__name__}: {str(e)}")
+            else:
+                return target_type(value)
+        except (KeyError, ValueError):
+            # Strategy 2: Try by name (exact match)
+            if isinstance(value, str):
+                try:
+                    return target_type[value]
+                except KeyError:
+                    pass
+            
+            # Strategy 3: Try by name with case conversion (uppercase)
+            if isinstance(value, str):
+                try:
+                    return target_type[value.upper()]
+                except KeyError:
+                    pass
+            
+            # Strategy 4: Try to find by value with case-insensitive comparison
+            if isinstance(value, str):
+                for enum_member in target_type:
+                    if isinstance(enum_member.value, str) and enum_member.value.lower() == value.lower():
+                        return enum_member
+            
+            # Strategy 5: Try to find by name with case-insensitive comparison
+            if isinstance(value, str):
+                for enum_member in target_type:
+                    if enum_member.name.lower() == value.lower():
+                        return enum_member
+        
+        # If all strategies fail, raise an error with helpful information
+        valid_values = [member.value for member in target_type]
+        valid_names = [member.name for member in target_type]
+        raise ValueError(
+            f"Cannot convert '{value}' to {target_type.__name__}. "
+            f"Valid values: {valid_values}. Valid names: {valid_names}"
+        )
+    
     
     def _convert_dataclass_value(self, value: Any, target_type: type, context: str) -> Any:
         """Convert value to dataclass type."""
@@ -354,4 +389,12 @@ def extract(text: str,
     if target_class is None:
         return data_dict
     
-    return extract_from_dict(data_dict, target_class)
+    try:
+        extracted_data = extract_from_dict(data_dict, target_class)
+        
+    except Exception as e:
+        logging.info(f"Dictionary was: {data_dict}")
+        logging.info("HINT:You can set  target_class=None to return the dictionary as is.")
+        raise e
+    
+    return extracted_data

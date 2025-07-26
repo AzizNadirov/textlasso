@@ -39,26 +39,24 @@ class Person:
     skills: List[str] = None
 
 # Extract from messy LLM response
-llm_response = """
+llm_response = r"""
 Here's the person data you requested:
 
-\```json
+```json
 {
     "name": "Alice Johnson",
     "age": 30,
     "email": "alice@company.com", 
     "skills": ["Python", "Machine Learning", "Data Science"]
 }
-\```
+```
 
 Hope this helps!
 """
 
 person = extract(llm_response, Person, extract_strategy='json')
 print(f"Extracted: {person.name}, {person.age} years old")
-print(person)
-# Extracted: Alice Johnson, 30 years old
-# Person(name='Alice Johnson', age=30, email='alice@company.com', skills=['Python', 'Machine Learning', 'Data Science'])
+# Output: Extracted: Alice Johnson, 30 years old
 ```
 
 ## 📚 Comprehensive Examples
@@ -84,7 +82,7 @@ class Product:
 clean_json = '{"name": "Laptop", "price": 999.99, "category": "Electronics", "in_stock": true}'
 
 # Works with markdown-wrapped JSON
-markdown_json = """
+markdown_json = r"""
 Here's your product data:
 ```json
 {
@@ -94,7 +92,7 @@ Here's your product data:
     "in_stock": false,
     "tags": ["wireless", "bluetooth", "noise-canceling"]
 }
-\```
+```
 """
 
 # Works with messy responses
@@ -120,20 +118,12 @@ for product in products:
 #### XML Extraction
 
 ```python
-from dataclasses import dataclass
-from typing import List, Optional
-from textlasso import extract
-
 @dataclass 
 class Address:
     street: str
     city: str
     country: str
     zip_code: Optional[str] = None
-    
-@dataclass
-class ResponseAddress:
-    address: Address
 
 xml_data = """
 <address>
@@ -144,9 +134,8 @@ xml_data = """
 </address>
 """
 
-response_address = extract(xml_data, ResponseAddress, extract_strategy='xml')
-print(f"Address: {response_address.address.street}, {response_address.address.city}, {response_address.address.country}")
-# Address: 123 Main St, San Francisco, USA
+address = extract(xml_data, Address, extract_strategy='xml')
+print(f"Address: {address.street}, {address.city}, {address.country}")
 ```
 
 ### 2. Complex Nested Data Structures
@@ -216,11 +205,6 @@ print(f"Employees: {len(company.employees)}")
 
 for emp in company.employees:
     print(f"  - {emp.name} ({emp.department.value}): {', '.join(emp.skills)}")
-
-# HQ: Austin, USA
-# Employees: 2
-#   - Sarah Chen (engineering): Python, React, AWS
-#   - Mike Rodriguez (marketing): SEO, Content Strategy, Analytics
 ```
 
 ### 3. LLM Response Cleaning
@@ -230,10 +214,10 @@ from textlasso.cleaners import clear_llm_res
 
 # Clean various LLM response formats
 messy_responses = [
-    "\```json\\n{\"key\": \"value\"}\\n\```",
-    "\```\\n{\"key\": \"value\"}\\n\```", 
-    "Here's the data: {\"key\": \"value\"} hope it helps!",
-    "\```xml\\n<root><item>data</item></root>\\n\```"
+    r'```json' + '\n{"key": "value"}\n' + r'```',
+    r'```' + '\n{"key": "value"}\n' + r'```', 
+    'Here\'s the data: {"key": "value"} hope it helps!',
+    r'```xml' + '\n<root><item>data</item></root>\n' + r'```'
 ]
 
 for response in messy_responses:
@@ -318,74 +302,11 @@ prompt = generate_structured_prompt(
 )
 
 print(prompt)
-# Output:
-# Analyze this customer review and extract structured feedback
-
-# ## OUTPUT FORMAT REQUIREMENTS
-
-# You must respond with a valid JSON object that follows this exact structure:
-
-# ### Schema: UserFeedback
-# - **rating**: int (required)
-# - **comment**: str (required)
-# - **category**: str (required)
-# - **recommended**: bool (required)
-# - **issues**: Array of str (optional)
-
-
-# ### JSON Format Rules:
-# - Use proper JSON syntax with double quotes for strings
-# - Include all required fields
-# - Use null for optional fields that are not provided
-# - Arrays should contain objects matching the specified structure
-# - Numbers should not be quoted
-# - Booleans should be true/false (not quoted)
-
-
-# ## EXAMPLES
-
-# Here are 2 examples of the expected JSON format:
-
-# ### Example 1:
-# ```json
-# {
-#   "rating": 1,
-#   "comment": "example_comment_1",
-#   "category": "example_category_1",
-#   "recommended": true,
-#   "issues": [
-#     "example_issues_item_1",
-#     "example_issues_item_2"
-#   ]
-# }
-# ```
-
-# ### Example 2:
-# ```json
-# {
-#   "rating": 2,
-#   "comment": "example_comment_2",
-#   "category": "example_category_2",
-#   "recommended": false,
-#   "issues": [
-#     "example_issues_item_1",
-#     "example_issues_item_2",
-#     "example_issues_item_3"
-#   ]
-# }
-# ```
-
-# Remember: Your response must be valid JSON that matches the specified structure exactly.
 ```
 
 #### Using the Decorator for Function Enhancement
-If you have a prompt returning functions, you can use the `@structured_output` decorator to automatically enhance your prompts with structure requirements.
 
 ```python
-
-from dataclasses import dataclass
-from typing import Optional, List
-
 from textlasso import structured_output
 
 @dataclass
@@ -393,12 +314,11 @@ class NewsArticle:
     title: str
     summary: str
     category: str
-    sentiment: str
+    sentiment: str  # positive, negative, neutral
     key_points: List[str]
     publication_date: Optional[str] = None
 
-# decorate prompt-returning function
-@structured_output(schema=NewsArticle, strategy="xml", example_count=1)
+@structured_output(schema=NewsArticle, strategy="json", example_count=1)
 def create_article_analysis_prompt(article_text: str) -> str:
     return f"""
     Analyze the following news article and extract key information:
@@ -414,41 +334,80 @@ article_text = "Breaking: New AI breakthrough announced by researchers..."
 enhanced_prompt = create_article_analysis_prompt(article_text)
 
 # This prompt now includes schema definitions, examples, and format requirements
-print("Enhanced prompt: ", enhanced_prompt)
-
-# Enhanced prompt:  
-#     Analyze the following news article and extract key information:
-    
-#     Article: Breaking: New AI breakthrough announced by researchers...
-    
-#     Please provide a comprehensive analysis focusing on the main themes,
-#     sentiment, and key takeaways.
-    
-
-
-# ## OUTPUT FORMAT REQUIREMENTS
-
-# You must respond with a valid XML object that follows this exact structure:
-
-# ### Schema: NewsArticle
-# - **title**: str (required)
-# - **summary**: str (required)
-# - **category**: str (required)
-# - **sentiment**: str (required)
-# - **key_points**: Array of str (required)
-# - **publication_date**: str (optional)
-
-
-# ### XML Format Rules:
-# - Use proper XML syntax with opening and closing tags
-# - Root element should match the main dataclass name
-# - Use snake_case for element names
-# - For arrays, repeat the element name for each item
-# - Use self-closing tags for null/empty optional fields
-# - Include all required fields as elements
+print("Enhanced prompt length:", len(enhanced_prompt))
+print("First 500 chars:", enhanced_prompt[:500])
 ```
 
-### 6. Real-World Use Cases
+#### Advanced Prompt Chaining
+
+```python
+from textlasso import structured_output, chain_prompts, prompt_cache
+
+def base_instructions() -> str:
+    return "You are an expert data analyst. Always be precise and thorough."
+
+def context_setting() -> str:
+    return "Focus on extracting actionable insights from the provided data."
+
+@prompt_cache(maxsize=64)  # Cache prompts to avoid regeneration
+@chain_prompts(base_instructions, context_setting)
+@structured_output(schema=NewsArticle, strategy="xml", example_count=2)
+def create_comprehensive_analysis_prompt(text: str, focus_area: str) -> str:
+    return f"""
+    Analyze the following content with special attention to {focus_area}:
+    
+    Content: {text}
+    """
+
+# This creates a comprehensive prompt with:
+# 1. Base instructions
+# 2. Context setting  
+# 3. Your specific prompt
+# 4. Structured output requirements with examples
+# 5. Caching for performance
+
+enhanced_prompt = create_comprehensive_analysis_prompt(
+    "Sample article text here...", 
+    "market trends"
+)
+```
+
+### 6. Error Handling and Validation
+
+```python
+from textlasso import extract
+from textlasso._extractors import ConversionError
+import json
+
+@dataclass
+class StrictData:
+    id: int
+    name: str
+    active: bool
+
+# Handling malformed data
+malformed_data = '{"id": "not_a_number", "name": "test"}'  # Missing required field, wrong type
+
+try:
+    result = extract(malformed_data, StrictData, extract_strategy='json')
+except ConversionError as e:
+    print(f"Conversion failed: {e}")
+except json.JSONDecodeError as e:
+    print(f"JSON parsing failed: {e}")
+
+# Working with partial data using Optional fields
+@dataclass  
+class PartialData:
+    id: Optional[int] = None
+    name: Optional[str] = None
+    active: bool = False
+
+partial_json = '{"name": "test"}'  # Only partial data
+result = extract(partial_json, PartialData, extract_strategy='json')
+print(f"Partial result: {result}")
+```
+
+### 7. Real-World Use Cases
 
 #### Processing Survey Responses
 
@@ -463,10 +422,10 @@ class SurveyResponse:
     improvement_areas: List[str]
 
 # Simulating LLM processing of survey data
-llm_survey_output = """
+llm_survey_output = r"""
 Based on the survey response, here's the extracted data:
 
-\```json
+```json
 {
     "respondent_id": "RESP_001",
     "age_group": "25-34", 
@@ -475,14 +434,15 @@ Based on the survey response, here's the extracted data:
     "would_recommend": true,
     "improvement_areas": ["response_time", "pricing"]
 }
-\```
+```
 
 This response indicates positive sentiment with specific improvement suggestions.
 """
 
 survey = extract(llm_survey_output, SurveyResponse, extract_strategy='json')
-print(survey)
-# SurveyResponse(respondent_id='RESP_001', age_group='25-34', satisfaction_rating=4, feedback='Great service overall, but could improve response time', would_recommend=True, improvement_areas=['response_time', 'pricing'])
+print(f"Survey {survey.respondent_id}: {survey.satisfaction_rating}/5 stars")
+print(f"Feedback: {survey.feedback}")
+print(f"Improvement areas: {', '.join(survey.improvement_areas)}")
 ```
 
 #### E-commerce Product Extraction
@@ -498,7 +458,7 @@ class ProductReview:
     helpful_votes: int
     review_date: str
 
-@structured_output(schema=ProductReview, strategy="xml")
+@structured_output(schema=ProductReview, strategy="json")
 def create_review_extraction_prompt(raw_review: str) -> str:
     return f"""
     Extract structured information from this product review:
@@ -517,7 +477,7 @@ Battery life could be better but overall very satisfied. Would definitely buy ag
 
 extraction_prompt = create_review_extraction_prompt(raw_review)
 # Send this prompt to your LLM, then extract the response:
-# review = extract(llm_response, ProductReview, extract_strategy='xml')
+# review = extract(llm_response, ProductReview, extract_strategy='json')
 ```
 
 ## 🔧 Configuration Options
