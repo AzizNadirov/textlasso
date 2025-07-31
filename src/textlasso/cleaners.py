@@ -2,7 +2,6 @@ import re
 import json
 from typing import Literal, Optional
 import xml.etree.ElementTree as ET
-import xmltodict
 import html
 
 

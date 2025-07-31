@@ -1,7 +1,7 @@
 [project]
 name = "textlasso"
-version = "0.1.2"
-description = "Simple packego for grab data from raw text. "
+version = "0.1.3"
+description = "Simple packege for working with LLM text responses and prompts."
 readme = "README.md"
 license = "MIT"
 authors = [

@@ -1,11 +1,12 @@
 import json
 import xml.etree.ElementTree as ET
 import dataclasses
-from dataclasses import fields, is_dataclass
+from dataclasses import fields, is_dataclass, asdict
 from typing import get_origin, get_args, Union, Dict, Any, Callable, Optional, Type, Literal
 from enum import Enum
 import logging
 import functools
+from textlasso.extract import extract
 
 
 
@@ -14,13 +15,54 @@ class PromptGenerationError(Exception):
     pass
 
 
+class Prompt:
+    def __init__(self,
+                 prompt_enhanced: str,
+                 prompt_original: str,
+                 schema: type,
+                 strategy: Literal['json', 'xml']):
+        self.prompt = prompt_enhanced
+        self.prompt_original = prompt_original
+        self.schema = schema
+        self.strategy = strategy
+        self._data = None
+        
+    @property
+    def data(self)->Optional[Dict[str, Any]]:
+        return self._data
+        
+    def has_data(self)->bool:
+        return self.data is not None
+        
+    
+    def extract(self, response_text: str)->str:
+        data = extract(text=response_text, target_class=self.schema, extract_strategy=self.strategy)
+        self._data = data
+        return data
+        
+    def _serialize(self, as_dict: bool = True)->str:
+        d = {
+            'prompt': self.prompt,
+            'has_data': self.has_data(),    
+            'prompt_original': self.prompt_original,
+            'schema': str(self.schema),
+            'strategy': self.strategy
+        }
+        return d if as_dict else json.dumps(d)
+        
+    def __str__(self):
+        return f"<Prompt: schema='{self.schema}', strategy='{self.strategy}', has_data='{self.has_data()}'>"
+    
+    def __repr__(self):
+        return f"<Prompt: schema='{self.schema}', strategy='{self.strategy}', has_data='{self.has_data()}'>"
+
+
 def generate_structured_prompt(
     prompt: str, 
     schema: type, 
     strategy: Literal['json', 'xml'] = 'xml',
     include_schema_description: bool = True,
-    example_count: int = 2
-) -> str:
+    example_count: int = 2) -> Prompt:
     """
     Generate a structured prompt that requires data in a specific format.
     
@@ -32,7 +74,7 @@ def generate_structured_prompt(
         example_count: Number of examples to generate (1-3)
     
     Returns:
-        Enhanced prompt with structure requirements and examples
+        Prompt: Prompt object which includes the enhanced prompt, data schema and extraction shortcut
         
     Raises:
         PromptGenerationError: If schema is invalid or strategy not supported
@@ -61,7 +103,7 @@ def generate_structured_prompt(
 
 Remember: Your response must be valid {strategy.upper()} that matches the specified structure exactly."""
     
-    return enhanced_prompt
+    return Prompt(prompt_enhanced=enhanced_prompt, prompt_original=prompt, schema=schema, strategy=strategy)
 
 
 class _StructuredPromptGenerator:
@@ -386,7 +428,7 @@ def structured_output(
             logger = logging.getLogger(f"{func.__module__}.{func.__name__}")
         
         @functools.wraps(func)
-        def wrapper(*args, **kwargs) -> str:
+        def wrapper(*args, **kwargs) -> Prompt:
             try:
                 # Call the original function to get the base prompt
                 logger.debug(f"Calling original function {func.__name__} with args={args}, kwargs={kwargs}")
